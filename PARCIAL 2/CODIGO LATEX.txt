@@ -1,0 +1,559 @@
+\documentclass{beamer}
+\usepackage{tikz}
+\usetikzlibrary{automata, positioning, arrows.meta}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{xcolor}
+\usepackage{textcase}
+\usepackage{lmodern}
+
+\usetheme{CambridgeUS}
+\usecolortheme{dolphin}
+\usefonttheme{professionalfonts}
+
+% Escala de grises
+\usecolortheme[named=gray]{structure}
+\setbeamercolor{normal text}{fg=black,bg=white}
+\setbeamercolor{block title}{bg=gray!30, fg=black}
+\setbeamercolor{block body}{bg=gray!10, fg=black}
+\setbeamertemplate{blocks}[rounded][shadow=true]
+\setbeamerfont{normal text}{size=\large}
+
+% Imagen de fondo
+\setbeamertemplate{background}{%
+  \begin{tikzpicture}[remember picture,overlay]
+    \node[opacity=0.2, at=(current page.center)] {
+      \includegraphics[width=1\paperwidth]{tren.png}
+    };
+  \end{tikzpicture}%
+}
+
+% Logo institucional
+\pgfdeclareimage[height=0.85cm]{utb-logo}{utb.png}
+\logo{\pgfuseimage{utb-logo}}
+
+% Pie de página personalizado
+\setbeamertemplate{footline}
+{
+  \leavevmode%
+  \hbox{%
+    \begin{beamercolorbox}[wd=.38\paperwidth,ht=2.2ex,dp=0.8ex,left]{author in head/foot}%
+      \usebeamerfont{author in head/foot}\hspace*{2ex}(Universidad Tecnológica de Bolívar)
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.35\paperwidth,ht=2.2ex,dp=0.8ex,center]{title in head/foot}%
+      \usebeamerfont{title in head/foot}\textbf{\textcolor{black}{SISTEMAS DIGITALES II}}
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.15\paperwidth,ht=2.2ex,dp=0.8ex,right]{date in head/foot}%
+      \usebeamerfont{date in head/foot}\scriptsize\insertshortdate{}\hspace*{1ex}
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.1\paperwidth,ht=2.2ex,dp=0.8ex,right]{page number in head/foot}%
+      \usebeamerfont{page number in head/foot}\insertframenumber{} / \inserttotalframenumber\hspace*{2ex}
+    \end{beamercolorbox}
+  }%
+  \vskip0pt%
+}
+
+% Datos para metadatos PDF
+\title[REGLAS DE DERIVACIÓN]{REGLAS DE DERIVACIÓN}
+\author[Jesús David Tovar]{Jesús David Tovar}
+\institute[UTB]{Universidad Tecnológica de Bolívar}
+\date[Abril 2026]{Abril 2026}
+
+\begin{document}
+
+
+
+
+% Portada alineada a la parte inferior izquierda con letra más pequeña
+\begin{frame}
+  \begin{tikzpicture}[remember picture, overlay]
+    \node[anchor=south west, xshift=0.2cm, yshift=0.4cm] at (current page.south west) {
+      \begin{minipage}{0.8\paperwidth}
+        % Título en tamaño normal (o \small si lo prefieres aún más pequeño)
+        {\usebeamerfont{title}\small\textbf{\textcolor{black}{\MakeUppercase{state machine desing:\\ the electric
+        train controller}}}\par}
+        \vspace{0cm}
+        % Datos del autor e institución en tamaño muy pequeño
+        {\usebeamerfont{author}\small\footnotesize\textbf{Jesús  Tovar T00085106}\par}
+        \vspace{0cm}
+        {\usebeamerfont{author}\small\footnotesize\textbf{Joiber Gutierrez T00063678}\par}
+        \vspace{0cm}
+        {\usebeamerfont{institute}\tiny Universidad Tecnológica de Bolívar\par}
+        \vspace{0cm}
+        {\usebeamerfont{date}\tiny 25 de abril de 2026\par}
+      \end{minipage}
+    };
+  \end{tikzpicture}
+\end{frame}
+
+
+
+
+\begin{frame}{¿Qué es una Máquina de Estado Finita (FSM)?}
+  \begin{block}{Definición y Conceptos Fundamentales}
+    Representa un sistema como un conjunto de \textbf{estados} y \textbf{transiciones} que dependen de las entradas, generando salidas asociadas. Es la representación de un circuito secuencial particular.
+    \begin{itemize}
+      \item \textbf{Estado:} Conjunto único de valores medidos en un sistema digital.
+      \item \textbf{Ramificación:} El paso del estado presente al estado siguiente.
+      \item \textbf{Diagrama de estado:} Ilustración del funcionamiento mediante "burbujas" y "flechas".
+      \item \textbf{Importancia:} Cualquier circuito con memoria (desde un flip-flop hasta una computadora) puede ser considerado una FSM.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}{State Machine Design: The Electric Train Controller}
+  \begin{block}{Planteamiento del Problema}
+    Se tiene un sistema de trenes eléctricos compuesto por dos trenes, denominados \textbf{Tren A} y \textbf{Tren B}, que se desplazan en un circuito con múltiples segmentos de vía interconectados.
+
+    El sistema incluye un \textbf{segmento común (Track 2)}, el cual puede ser ocupado por ambos trenes, lo que introduce el riesgo de \textbf{colisiones} si no se controla adecuadamente su acceso.
+  \end{block}
+\end{frame}
+
+
+\begin{frame}{Objetivo del Controlador}
+  \begin{block}{Diseño de la FSM}
+    Diseñar una \textbf{máquina de estados finita (FSM)} que:
+    \begin{itemize}
+      \item Controle el movimiento de ambos trenes mediante señales de dirección.
+      \item Gestione el estado de los \textbf{switches} para enrutar correctamente los trenes.
+      \item Garantice que \textbf{solo un tren ocupe el segmento común} en cualquier instante.
+      \item Evite colisiones y descarrilamientos durante la operación del sistema.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Introducción}
+  \begin{block}{Contexto General}
+    Las \textbf{máquinas de estados finitas (FSM)} constituyen una herramienta fundamental en el diseño de sistemas digitales secuenciales, permitiendo modelar comportamientos complejos mediante la definición de estados y transiciones controladas por entradas.
+
+    En aplicaciones reales, como sistemas de control y automatización, las FSM son ampliamente utilizadas para garantizar un funcionamiento seguro, predecible y eficiente.
+  \end{block}
+
+  \begin{block}{Aplicación al Problema}
+    En este trabajo, se aborda el diseño de un controlador para un sistema de trenes eléctricos, en el cual dos trenes comparten parcialmente la vía.
+
+    Mediante el uso de una FSM, se busca gestionar el movimiento de los trenes y el estado de los switches, asegurando una operación libre de colisiones y respetando las restricciones del sistema físico.
+  \end{block}
+\end{frame}
+
+
+\begin{frame}{Objetivos}
+  \begin{block}{Objetivo General}
+    Diseñar e implementar una \textbf{máquina de estados finita (FSM)} en VHDL para el control de un sistema de trenes eléctricos, garantizando una operación segura, libre de colisiones y acorde a las condiciones establecidas en el problema.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Objetivos Específicos}
+  \begin{block}{Metas del Proyecto}
+    \begin{itemize}
+      \item Analizar el funcionamiento del sistema de trenes y sus restricciones operativas.
+      \item Identificar las \textbf{entradas y salidas} del sistema a partir de los sensores y actuadores.
+      \item Diseñar el \textbf{diagrama de estados} que modele el comportamiento del controlador.
+      \item Implementar la FSM utilizando \textbf{VHDL} en la plataforma Quartus.
+      \item Verificar el funcionamiento del sistema mediante \textbf{simulación} y análisis del RTL.
+      \item Documentar el desarrollo del proyecto y su implementación en un repositorio.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Descripción del Problema}
+  \begin{block}{Sistema de Trenes Eléctricos}
+    El problema consiste en el diseño de un controlador digital para un sistema de trenes eléctricos compuesto por dos trenes independientes, denominados \textbf{Tren A} y \textbf{Tren B}, que se desplazan sobre una red de vías interconectadas.
+
+    Ambos trenes operan en la misma infraestructura física, compartiendo parcialmente su recorrido, lo que introduce condiciones críticas de seguridad que deben ser gestionadas mediante un sistema de control lógico.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Estructura del Sistema}
+  \begin{block}{Segmentos de la Vía}
+    La red de trenes está dividida en múltiples segmentos, entre los cuales destaca un \textbf{segmento común (Track 2)}, el cual puede ser accedido por ambos trenes.
+
+    Este segmento representa un punto crítico del sistema, ya que:
+    \begin{itemize}
+      \item Es compartido por ambos trenes.
+      \item Existe riesgo de \textbf{colisión} si no se regula su acceso.
+      \item Requiere coordinación estricta mediante lógica de control.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+
+\begin{frame}{Sensores del Sistema}
+  \begin{block}{Detección de Trenes}
+    El sistema dispone de cinco sensores digitales (\textbf{S1, S2, S3, S4, S5}) ubicados en puntos estratégicos de la vía, los cuales permiten detectar la presencia de los trenes.
+
+    \begin{itemize}
+      \item Cada sensor se activa cuando un tren se encuentra en su proximidad.
+      \item Las señales de los sensores \textbf{no son instantáneas}, sino que permanecen activas durante varios ciclos de reloj.
+      \item Esto implica que el diseño debe considerar \textbf{transiciones de estado cuidadosas} para evitar interpretaciones erróneas.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Señales de Control del Sistema}
+  \begin{block}{Actuadores del Sistema}
+    El controlador genera señales de salida que determinan el comportamiento del sistema:
+
+    \begin{itemize}
+      \item \textbf{Dirección de los trenes:}
+      \begin{itemize}
+        \item Tren A: DA1-DA0
+        \item Tren B: DB1-DB0
+      \end{itemize}
+      \item \textbf{Configuración de switches:} SW1, SW2 y SW3
+    \end{itemize}
+
+    Estas señales permiten:
+    \begin{itemize}
+      \item Detener o poner en movimiento los trenes.
+      \item Controlar la dirección de desplazamiento.
+      \item Redirigir los trenes entre vías internas y externas.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Enfoque de Solución}
+  \begin{block}{Uso de Máquina de Estados}
+    Para resolver este problema, se emplea una \textbf{máquina de estados finita (FSM)}, la cual permite modelar el comportamiento del sistema mediante estados y transiciones basadas en las señales de entrada.
+
+    La FSM:
+    \begin{itemize}
+      \item Supervisa continuamente los sensores.
+      \item Decide cuándo permitir el acceso al segmento común.
+      \item Controla la detención y movimiento de los trenes.
+      \item Garantiza el cumplimiento de todas las restricciones del sistema.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+
+
+
+
+
+
+\begin{frame}{Representación Visual: Diagrama de Estados}
+  \begin{block}{Diagrama de Estados del Controlador de Trenes}
+    \centering
+    \includegraphics[width=0.6\textwidth]{DIAGRAMA_TREN.png}
+  \end{block}
+\end{frame}
+
+
+\begin{frame}{Análisis del Diagrama de Estados}
+  \begin{block}{Interpretación del Comportamiento}
+    \begin{itemize}
+      \item La máquina de estados está compuesta por cinco estados principales: \textbf{ABout, Ain, Bin, Astop y Bstop}.
+      \item Las transiciones dependen de las combinaciones de los sensores (\textbf{S1, S2, S3, S4}).
+      \item Los estados \textbf{Ain} y \textbf{Bin} representan el ingreso al segmento común.
+      \item Los estados \textbf{Astop} y \textbf{Bstop} detienen un tren para evitar conflictos en la vía.
+      \item El estado \textbf{ABout} representa la operación normal sin conflicto en el segmento compartido.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+
+\begin{frame}{Descripción del Código Desarrollado}
+  \begin{block}{Estructura General}
+    El controlador del sistema de trenes fue implementado en \textbf{VHDL} utilizando una arquitectura basada en \textbf{máquinas de estados finitas (FSM)}.
+
+    El diseño se compone de:
+    \begin{itemize}
+      \item Definición de la entidad (entradas y salidas)
+      \item Declaración de estados y señales internas
+      \item Proceso secuencial para la transición de estados
+      \item Lógica combinacional para definir las salidas
+    \end{itemize}
+
+    Este enfoque permite modelar el comportamiento del sistema de forma clara, modular y sintetizable en hardware.
+  \end{block}
+\end{frame}
+
+
+
+\begin{frame}[fragile]{Entidad del Sistema}
+  \begin{block}{Definición de Entradas y Salidas}
+    \tiny
+\begin{verbatim}
+LIBRARY IEEE;
+USE IEEE.STD_LOGIC_1164.ALL;
+USE IEEE.STD_LOGIC_ARITH.ALL;
+USE IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+ENTITY Tcontrol IS
+PORT(
+  reset, clock,
+  sensor1, sensor2, sensor3, sensor4, sensor5 : IN STD_LOGIC;
+  switch1, switch2, switch3 : OUT STD_LOGIC;
+  dirA, dirB : OUT STD_LOGIC_VECTOR(1 DOWNTO 0)
+);
+END Tcontrol;
+\end{verbatim}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Definición de Estados}
+  \begin{block}{Tipo Enumerado y Señales}
+    \tiny
+\begin{verbatim}
+ARCHITECTURE a OF Tcontrol IS
+
+TYPE STATE_TYPE IS (ABout, Ain, Bin, Astop, Bstop);
+SIGNAL state : STATE_TYPE;
+
+SIGNAL sensor12, sensor13, sensor24 :
+STD_LOGIC_VECTOR(1 DOWNTO 0);
+
+BEGIN
+\end{verbatim}
+  \end{block}
+
+  \begin{block}{Interpretación}
+    \begin{itemize}
+      \item Se utiliza un tipo enumerado para representar los estados.
+      \item Se definen combinaciones de sensores para simplificar decisiones.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Proceso Secuencial}
+  \begin{block}{Transición de Estados}
+    \tiny
+\begin{verbatim}
+PROCESS (reset, clock)
+BEGIN
+  IF reset = '1' THEN
+    state <= ABout;
+
+  ELSIF rising_edge(clock) THEN
+
+    CASE state IS
+\end{verbatim}
+  \end{block}
+
+  \begin{block}{Interpretación}
+    \begin{itemize}
+      \item Se implementa un registro de estado con flip-flops.
+      \item El cambio de estado ocurre en el flanco positivo del reloj.
+      \item Se define un estado inicial mediante reset.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+
+\begin{frame}[fragile]{Lógica de Transición}
+  \begin{block}{Estado ABout}
+    \tiny
+\begin{verbatim}
+WHEN ABout =>
+  CASE sensor12 IS
+    WHEN "00" => state <= ABout;
+    WHEN "01" => state <= Bin;
+    WHEN "10" => state <= Ain;
+    WHEN "11" => state <= Ain;
+    WHEN OTHERS => state <= ABout;
+  END CASE;
+\end{verbatim}
+  \end{block}
+
+  \begin{block}{Interpretación}
+    \begin{itemize}
+      \item Se decide qué tren entra al track común.
+      \item Se evalúan sensores S1 y S2 simultáneamente.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+
+\begin{frame}[fragile]{Estados de Control}
+  \begin{block}{Astop y Bstop}
+    \tiny
+\begin{verbatim}
+WHEN Astop =>
+  IF sensor3 = '1' THEN
+    state <= Ain;
+  ELSE
+    state <= Astop;
+  END IF;
+
+WHEN Bstop =>
+  IF sensor4 = '1' THEN
+    state <= Bin;
+  ELSE
+    state <= Bstop;
+  END IF;
+\end{verbatim}
+  \end{block}
+
+  \begin{block}{Interpretación}
+    \begin{itemize}
+      \item Se detiene un tren hasta que el otro libere el track común.
+      \item Se usan sensores para reanudar el movimiento.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+
+\begin{frame}[fragile]{Procesamiento de Sensores}
+  \begin{block}{Agrupación de Entradas}
+    \tiny
+\begin{verbatim}
+sensor12 <= sensor1 & sensor2;
+sensor13 <= sensor1 & sensor3;
+sensor24 <= sensor2 & sensor4;
+\end{verbatim}
+  \end{block}
+
+  \begin{block}{Interpretación}
+    \begin{itemize}
+      \item Se combinan sensores para simplificar la lógica.
+      \item Permite evaluar múltiples condiciones en una sola comparación.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Lógica de Salidas}
+  \begin{block}{Asignación con WITH SELECT}
+    \tiny
+\begin{verbatim}
+WITH state SELECT
+switch1 <= '0' WHEN ABout,
+           '0' WHEN Ain,
+           '1' WHEN Bin,
+           '1' WHEN Astop,
+           '0' WHEN Bstop;
+\end{verbatim}
+  \end{block}
+
+  \begin{block}{Interpretación}
+    \begin{itemize}
+      \item Las salidas dependen únicamente del estado actual.
+      \item Se implementa una máquina de tipo Moore.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Control de Movimiento}
+  \begin{block}{Dirección de los Trenes}
+    \tiny
+\begin{verbatim}
+WITH state SELECT
+dirA <= "01" WHEN ABout,
+        "01" WHEN Ain,
+        "01" WHEN Bin,
+        "00" WHEN Astop,
+        "01" WHEN Bstop;
+
+WITH state SELECT
+dirB <= "01" WHEN ABout,
+        "01" WHEN Ain,
+        "01" WHEN Bin,
+        "01" WHEN Astop,
+        "00" WHEN Bstop;
+\end{verbatim}
+  \end{block}
+
+  \begin{block}{Interpretación}
+    \begin{itemize}
+      \item "01" indica movimiento hacia adelante.
+      \item "00" indica detención del tren.
+      \item Cada estado define el comportamiento de ambos trenes.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}{RTL del Sistema}
+  \begin{block}{Vista General del RTL}
+    \centering
+    \includegraphics[width=0.8\textwidth]{RTL.jpg}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Descripción del RTL}
+  \begin{block}{Interpretación General}
+    \begin{itemize}
+      \item El RTL representa la implementación hardware del diseño en VHDL.
+      \item Se observan los bloques principales: lógica combinacional y registros.
+      \item El sistema está sincronizado por la señal de reloj.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}{RTL de la Máquina de Estados}
+  \begin{block}{Implementación de la FSM}
+    \centering
+    \includegraphics[width=0.75\textwidth]{RTL_MAQUINA_ESTADOS.jpg}
+  \end{block}
+
+  \begin{block}{Descripción}
+    \begin{itemize}
+      \item Se observa el registro de estado implementado con flip-flops.
+      \item La lógica de transición determina el siguiente estado.
+      \item Las salidas dependen únicamente del estado actual (Modelo Moore).
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Análisis del RTL}
+  \begin{block}{Interpretación del Diseño}
+    \begin{itemize}
+      \item El diseño implementa correctamente una \textbf{máquina de estados finita}.
+      \item El bloque secuencial almacena el estado actual del sistema.
+      \item El bloque combinacional calcula el siguiente estado en función de los sensores.
+      \item Las salidas se generan de manera estable, evitando cambios bruscos.
+      \item El diseño es consistente con el diagrama de estados del problema.
+    \end{itemize}
+  \end{block}
+
+  \begin{block}{Conclusión Técnica}
+    La implementación en RTL valida que el código VHDL describe correctamente el comportamiento esperado del sistema, garantizando una operación segura y sincronizada.
+  \end{block}
+\end{frame}
+
+
+\begin{frame}{Repositorio del Proyecto}
+  \begin{block}{Descripción General}
+    El proyecto fue almacenado en un repositorio llamado:
+
+    \centering
+    \textbf{PROBLEMA-DEL-TREN-PARCIAL-CORTE-2-DIGITALES-II}
+
+    \vspace{0.3cm}
+
+    Este repositorio contiene todos los archivos necesarios para el desarrollo y validación del sistema:
+    \begin{itemize}
+      \item Código fuente en \textbf{VHDL}
+      \item Archivos del proyecto en \textbf{Quartus}
+      \item Imágenes del \textbf{RTL} y diagramas
+      \item Presentación en \textbf{LaTeX}
+      \item Video en \textbf{Youtube}
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+
+\begin{frame}{Conclusiones}
+  \begin{block}{Resultados Obtenidos}
+    \begin{itemize}
+      \item Se logró diseñar e implementar una \textbf{máquina de estados finita (FSM)} capaz de controlar el movimiento de dos trenes evitando colisiones en el segmento común.
+      \item El modelo desarrollado garantiza una operación segura mediante la correcta gestión de sensores y señales de control.
+      \item La implementación en \textbf{VHDL} permitió describir el comportamiento del sistema de forma estructurada y sintetizable.
+    \end{itemize}
+  \end{block}
+\end{frame}
+\begin{frame}{Conclusiones Finales}
+  \begin{block}{Análisis del Diseño}
+    \begin{itemize}
+      \item El RTL generado confirmó la correcta correspondencia entre el diseño teórico y su implementación en hardware.
+      \item El uso de una arquitectura tipo \textbf{Moore} permitió obtener salidas estables y predecibles.
+      \item La simulación del sistema validó el comportamiento esperado en diferentes escenarios de operación.
+    \end{itemize}
+  \end{block}
+
+  \centering
+  \vspace{0.3cm}
+  \textbf{\large El diseño cumple con los requerimientos del problema y demuestra la efectividad del uso de FSM en sistemas de control digital.}
+\end{frame}
+
+\end{document}
+

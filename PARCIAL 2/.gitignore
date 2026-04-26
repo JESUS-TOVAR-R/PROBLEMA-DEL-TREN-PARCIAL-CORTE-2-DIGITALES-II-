@@ -1,0 +1,24 @@
+#Archivos
+incremental_db/
+db/
+output_files/
+simulation/
+#Archivos temporales
+*.qws
+*.log
+*.bak
+*.tmp 
+*.rpt
+*.summary
+*.smsg
+*.done
+*.jdi
+
+#Archivos de compilación
+*.sof
+*.pof
+*.hex
+*.elf
+
+# Otros
+*.autosave
