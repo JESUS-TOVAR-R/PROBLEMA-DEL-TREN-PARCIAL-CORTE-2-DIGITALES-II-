@@ -2,4 +2,5 @@ En el siguiente repositorio encontrara la solucion al problema propuesto para el
 #Ademas usted encontrara un enlace en el README que esta leyendo el cual contiene un video explicativo de la solucion
 #El codigo VHDL y demas estan en la carpeta que se llama PROBLEMA_TREN
 #las simulaciones se encuentran en la carpeta SIMULACIONES
-# Link del video:
+#Link del video:
+# Video
